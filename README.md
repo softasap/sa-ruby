@@ -17,9 +17,11 @@ Role Variables
 rubies_location: /opt/rubies
 chruby_version: 0.3.9
 ruby_install_version: 0.6.0
-ruby_install_setsystem: true
 ruby_version: 2.3.0
 
+option_install_app: false
+option_install_nginx_passenger: true
+option_ruby_install_setsystem: true
 
 
 app_short_name: app
@@ -36,6 +38,28 @@ app_directories:
 
 Example Playbook
 ----------------
+
+- hosts: www
+
+  vars:
+    - root_dir: ..
+
+
+  pre_tasks:
+    - debug: msg="Pre tasks section"
+
+  roles:
+     - {
+         role: "sa-ruby",
+         ruby_install_setsystem: true,
+         ruby_version: 2.3.0,
+
+         option_install_sampleapp: false,
+         option_install_nginx_passenger: true
+       }
+
+  tasks:
+    - debug: msg="Tasks section"
 
 
 License

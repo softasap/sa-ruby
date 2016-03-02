@@ -13,10 +13,11 @@
   rubies_location: /opt/rubies
   chruby_version: 0.3.9
   ruby_install_version: 0.6.0
-  ruby_install_setsystem: true
   ruby_version: 2.3.0
 
-
+  option_install_app: false
+  option_install_nginx_passenger: true
+  option_ruby_install_setsystem: true
 
   app_short_name: app
   app_env: production

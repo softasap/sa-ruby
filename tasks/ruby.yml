@@ -14,7 +14,7 @@
 
   - name: Ruby | Update SYSTEM ruby_version if necessary
     command: '/usr/local/bin/ruby-install --system ruby {{ruby_version}}'
-    when: not ruby_version_present.stat.exists
+    when: option_ruby_install_setsystem
     become: yes
     tags: ruby
 

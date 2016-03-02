@@ -14,5 +14,7 @@
   - include: 'ruby.yml'
 
   - include: 'nginx_passenger.yml'
+    when: option_install_nginx_passenger
 
   - include: 'ruby_app_stub.yml'
+    when: option_install_app 
