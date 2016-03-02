@@ -1,0 +1,62 @@
+---
+
+  - name: APP STUB | Dependencies
+    apt: pkg={{ item }} state=present force="yes"  update_cache="yes"
+    when: ansible_system == "Linux"
+    become: yes
+    with_items:
+      - libsqlite3-dev
+      - git
+      - nodejs
+      - npm
+    tags: app_stub
+
+  - name: APP STUB | link node globally
+    file: src="/usr/bin/nodejs" dest="/usr/bin/node" state=link
+    become: yes
+    tags: app_stub
+
+  - name: APP STUB | Install gem dependencies
+    shell: "gem install --no-rdoc --no-ri {{item}}"
+    with_items:
+      - sqlite3
+    become: yes
+    tags: app_stub
+
+
+  - name: APP STUB | Create directories
+    file: path={{item}} state=directory mode=0755 owner={{ansible_user_id}} group={{ansible_user_id}}
+    with_items: "{{app_directories}}"
+    become: yes
+    tags: app_stub
+
+  - name: APP STUB | Checkout app
+    git: repo="{{app_repository}}" dest="{{app_base_dir}}" accept_hostkey="yes" force="yes"
+    tags: app_stub
+
+
+  - name: APP STUB | Nginx conf
+    template: src="{{role_dir}}/templates/nginx_app.conf.j2" dest="/etc/nginx/sites-enabled/{{app_short_name}}.conf"
+    become: yes
+    tags: app_stub
+
+  - name: APP STUB | Install global rails gem
+    shell: gem install --no-rdoc --no-ri rails
+    become: yes
+    tags: app_stub
+
+  - name: APP STUB | Eliminate ruby req
+    lineinfile: dest="{{app_base_dir}}/Gemfile" regexp="^(\s*)*ruby" line="ruby '{{ruby_version}}'"
+    tags: app_stub
+
+  - name: APP STUB | Run bundle install --path .bundle/gems --binstubs .bundle/bin
+    shell: bundle install # --path .bundle/gems --binstubs .bundle/bin
+    args:
+      chdir: "{{app_base_dir}}"
+    tags: app_stub
+
+
+  - name: Nginx | Reload
+    service: name=nginx state=reloaded
+    become: yes
+    tags: app_stub

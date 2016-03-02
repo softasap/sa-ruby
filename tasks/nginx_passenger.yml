@@ -1,0 +1,111 @@
+---
+  - name: Nginx | Check if is present
+    command: test -x /usr/sbin/nginx
+    when: ansible_os_family == "Debian"
+    ignore_errors: yes
+    register: nginx_present
+    tags: nginx
+
+  - name: Passenger | Add GPG key to apt keyring
+    apt_key: keyserver=keyserver.ubuntu.com id=561F9B9CAC40B2F7
+    when: ansible_os_family == "Debian" and nginx_present|failed
+    tags: passenger
+    become: yes
+
+  - name: Passenger | Install needed packages
+    apt: state=present pkg="{{item}}"
+    with_items:
+     - apt-transport-https
+     - ca-certificates
+    when: ansible_os_family == "Debian" and nginx_present|failed
+    become: yes
+    tags: passenger
+
+  - name: Passenger | Add nginx extras repository
+    apt_repository: repo="deb https://oss-binaries.phusionpassenger.com/apt/passenger trusty main" state=present
+    when: ansible_os_family == "Debian" and nginx_present|failed
+    tags: passenger
+    become: yes
+
+  - name: Ruby | Install Nginx extra and Phusion Passenger
+    apt: state=present update_cache=yes pkg="{{item}}"
+    when: ansible_os_family == "Debian" and nginx_present|failed
+    with_items:
+     - nginx-extras
+     - passenger
+    become: yes
+    tags: passenger
+
+
+  - name: Nginx | Create sites available/enabled directories
+    file: path={{item}} state=directory mode=0755
+    with_items:
+      - /etc/nginx/sites-available
+      - /etc/nginx/sites-enabled
+    when: ansible_os_family == "Debian" and nginx_present|failed
+    tags:
+      - nginx
+      - passenger
+    become: yes
+
+  - name: Nginx | Configure include sites-enabled
+    lineinfile: dest=/etc/nginx/nginx.conf regexp=".*sites-enabled.*" line="    include /etc/nginx/sites-enabled/*;" insertbefore="}" state=present
+    tags:
+      - nginx
+      - passenger
+    when: ansible_os_family == "Debian" and nginx_present|failed
+    become: yes
+
+  - name: Nginx | Disable default site
+    file: path=/etc/nginx/sites-enabled/default state=absent
+    tags:
+      - nginx
+      - passenger
+    when: ansible_os_family == "Debian" and nginx_present|failed
+    become: yes
+
+  - name: Nginx | Uncomment server_names_hash_bucket_size
+    lineinfile: dest=/etc/nginx/nginx.conf regexp="^(\s*)#\s*server_names_hash_bucket_size" line="\1server_names_hash_bucket_size 64;" backrefs=yes
+    become: yes
+    when: ansible_os_family == "Debian" and nginx_present|failed
+    tags:
+      - nginx
+      - passenger
+
+  - name: Nginx | Set ruby to system one
+    lineinfile: dest=/etc/nginx/nginx.conf regexp="^(\s*)#\s*passenger_ruby" line="passenger_ruby /usr/local/bin/ruby;" backrefs=yes
+    become: yes
+    when: ansible_os_family == "Debian" and nginx_present|failed
+    tags:
+      - nginx
+      - passenger
+
+  - name: Nginx | Set ruby to system one
+    lineinfile: dest=/etc/nginx/nginx.conf regexp="^(\s*)#\s*passenger_root" line="passenger_root /usr/lib/ruby/vendor_ruby/phusion_passenger/locations.ini;" backrefs=yes
+    become: yes
+    when: ansible_os_family == "Debian" and nginx_present|failed
+    tags:
+      - nginx
+      - passenger
+
+
+  - name: Nginx | Reload
+    service: name=nginx state=reloaded
+    when: ansible_os_family == "Debian" and nginx_present|failed
+    tags:
+      - nginx
+      - passenger
+    become: yes
+
+
+    ## Manual steps
+
+#    sudo /usr/bin/passenger-config validate-install
+# * Checking whether this Phusion Passenger install is in PATH... ✓
+# * Checking whether there are no other Phusion Passenger installations... ✓
+
+# Uncomment passenger config related to nginx
+# restart
+
+# check presence of processes in ....
+#  sudo /usr/sbin/passenger-memory-stats

@@ -1,0 +1,6 @@
+server {
+  listen 80 default_server;
+  passenger_enabled on;
+  passenger_app_env {{app_env}};
+  root {{app_www_root}};
+}
