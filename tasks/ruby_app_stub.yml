@@ -65,7 +65,7 @@
     when: app_repository_keyname is not defined
     tags: app_stub
 
- - name: APP STUB | Install global rails gem
+  - name: APP STUB | Install global rails gem
     shell: gem install --no-rdoc --no-ri rails
     become: yes
     tags: app_stub
@@ -74,12 +74,16 @@
     lineinfile: dest="{{app_base_dir}}/Gemfile" regexp="^(\s*)*ruby" line="ruby '{{ruby_version}}'"
     tags: app_stub
 
-  - name: APP STUB | gem therubyracer
+  - name: APP STUB | gem therubyracer - uglifyjs
     lineinfile: dest="{{app_base_dir}}/Gemfile" regexp="^(\s*)*gem 'therubyracer'" line="gem 'therubyracer', :platforms => :ruby" insertafter="^group :production do"
     tags: app_stub
 
-  - name: APP STUB | gem execjs
+  - name: APP STUB | gem execjs - uglifyjs
     lineinfile: dest="{{app_base_dir}}/Gemfile" regexp="^(\s*)*gem 'execjs'" line="gem 'execjs'" insertafter="^group :production do"
+    tags: app_stub
+
+  - name: APP STUB | gem pg
+    lineinfile: dest="{{app_base_dir}}/Gemfile" regexp="^(\s*)*gem 'pg'" line="gem 'pg'" insertafter="^group :production do"
     tags: app_stub
 
   - name: APP STUB | Run bundle install --path .bundle/gems --binstubs .bundle/bin
@@ -105,9 +109,16 @@
   #   tags: app_stub
 
 # Fix deprecation notice
-  - name: APP STUB | Migrate environments/production.rb
-    lineinfile: dest="{{app_base_dir}}/config/environments/{{app_env}}.rb" regexp="^(\s*)*config.serve_static_assets" line="  config.serve_static_files = true "
+#    - name: APP STUB | Migrate environments/production.rb
+#      lineinfile: dest="{{app_base_dir}}/config/environments/{{app_env}}.rb" regexp="^(\s*)*config.serve_static_assets" line="  config.serve_static_files = true "
+#      tags: app_stub
+
+  - name: APP STUB | database.yml
+    template: src="{{root_dir}}/templates/app/database.yml.j2" dest="{{app_base_dir}}/config/database.yml"
+    become: yes
     tags: app_stub
+
+
 
   - name: APP STUB | Precompile assets
     shell: bundle exec rake assets:precompile
@@ -117,6 +128,7 @@
       RAILS_ENV: "{{app_env}}"
       DATABASE_URL: "postgres://{{app_db_user}}:{{app_db_password}}@{{app_db_host}}/{{app_db_name}}"
       SECRET_KEY_BASE: "{{app_secret}}"
+      DOMAIN_NAME: "{{app_domain}}"
     tags: app_stub
 
   - name: APP STUB | DB Migrate
@@ -127,16 +139,11 @@
       RAILS_ENV: "{{app_env}}"
       DATABASE_URL: "postgres://{{app_db_user}}:{{app_db_password}}@{{app_db_host}}/{{app_db_name}}"
       SECRET_KEY_BASE: "{{app_secret}}"
-    tags: app_stub
-
-
-  - name: APP STUB | database.yml
-    template: src="{{root_dir}}/components/app/database.yml.j2" dest="{{app_base_dir}}/config/database.yml"
-    become: yes
+      DOMAIN_NAME: "{{app_domain}}"
     tags: app_stub
 
   - name: APP STUB | Nginx conf
-    template: src="{{root_dir}}/components/templates/nginx_app.conf.j2" dest="/etc/nginx/sites-enabled/{{app_short_name}}.conf"
+    template: src="{{root_dir}}/templates/nginx_app.conf.j2" dest="/etc/nginx/sites-enabled/{{app_short_name}}.conf"
     become: yes
     tags: app_stub
 
