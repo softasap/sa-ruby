@@ -4,11 +4,12 @@
   role_dir: "{{ lookup('pipe','pwd')|dirname }}"
 
   needed_packages:
-    - 'build-essential'
-    - 'libssl-dev'
-    - 'libyaml-dev'
-    - 'libcurl4-openssl-dev'
-    - 'htop'
+    - build-essential
+    - libssl-dev
+    - libyaml-dev
+    - git
+    - libcurl4-openssl-dev
+    - htop
 
   rubies_location: /opt/rubies
   chruby_version: 0.3.9
@@ -16,13 +17,32 @@
   ruby_install_setsystem: true
   ruby_version: 2.3.0
 
-
-
   app_short_name: app
+
+  app_dependencies:
+    - libsqlite3-dev
+    - libmysqlclient-dev
+    - libpq-dev
+    - git
+    - nodejs
+    - npm
+
   app_env: production
+  app_secret: 82d58d3dfb91238b495a311eb8539edf5064784f1d58994679db8363ec241c745bef0b446bfe44d66cbf91a2f4e497d8f6b1ef1656e3f405b0d263a9617ac75e
   app_repository: https://github.com/RailsApps/rails-devise.git
+#  app_repository_keyname: id_rsa_app
   app_base_dir: /var/www
   app_www_root: "{{app_base_dir}}/public"
+
+  app_env_vars:
+    - {name: SECRET_KEY_BASE, value: "{{app_secret}}" }
+    - {name: DATABASE_URL, value: "postgres://{{app_db_user}}:{{app_db_password}}@{{app_db_host}}/{{app_db_name}}"}
+    - {name: RAILS_ENV, value: "{{app_env}}" }
+
+  app_db_host: localhost
+  app_db_user: app_user
+  app_db_password: app_password
+  app_db_name: app_database    
 
   app_directories:
     - "{{app_base_dir}}"

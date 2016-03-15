@@ -1,6 +1,11 @@
 server {
   listen 80 default_server;
   passenger_enabled on;
+
+  {% for envvar in app_env_vars %}
+  passenger_env_var {{ envvar.name }} "{{ envvar.value }}";
+  {% endfor %}
+
   passenger_app_env {{app_env}};
   root {{app_www_root}};
 }

@@ -3,12 +3,8 @@
   - name: APP STUB | Dependencies
     apt: pkg={{ item }} state=present force="yes"  update_cache="yes"
     when: ansible_system == "Linux"
+    with_items: "{{app_dependencies}}"
     become: yes
-    with_items:
-      - libsqlite3-dev
-      - git
-      - nodejs
-      - npm
     tags: app_stub
 
   - name: APP STUB | link node globally
@@ -23,6 +19,10 @@
     become: yes
     tags: app_stub
 
+  - name: APP STUB | Re-create base app directory
+    file: path={{app_base_dir}} state=absent
+    become: yes
+    tags: app_stub
 
   - name: APP STUB | Create directories
     file: path={{item}} state=directory mode=0755 owner={{ansible_user_id}} group={{ansible_user_id}}
@@ -30,17 +30,42 @@
     become: yes
     tags: app_stub
 
-  - name: APP STUB | Checkout app
-    git: repo="{{app_repository}}" dest="{{app_base_dir}}" accept_hostkey="yes" force="yes"
-    tags: app_stub
-
-
-  - name: APP STUB | Nginx conf
-    template: src="{{role_dir}}/templates/nginx_app.conf.j2" dest="/etc/nginx/sites-enabled/{{app_short_name}}.conf"
+  - name: APP STUB | Create .ssh directory
+    file: path={{ssh_dir}}/.ssh state=directory mode=700 owner={{ansible_user_id}} group={{ansible_user_id}}
+    when: app_repository_keyname is defined
     become: yes
     tags: app_stub
 
-  - name: APP STUB | Install global rails gem
+  - name: APP STUB | Copy private deployment key
+    copy: src="{{root_dir}}/components/git/{{app_repository_keyname}}" dest="{{ssh_dir}}/.ssh/{{app_repository_keyname}}" mode=600 owner={{ansible_user_id}} group={{ansible_user_id}}
+    when: app_repository_keyname is defined
+    become: yes
+    tags: app_stub
+
+  - name: APP STUB | Copy public deployment key
+    copy: src="{{root_dir}}/components/git/{{app_repository_keyname}}.pub" dest="{{ssh_dir}}/.ssh/{{app_repository_keyname}}.pub" mode=644 owner={{ansible_user_id}} group={{ansible_user_id}}
+    when: app_repository_keyname is defined
+    become: yes
+    tags: app_stub
+
+  - name: APP STUB | Touch and set permission of known_hosts
+    file: path={{ssh_dir}}/.ssh/known_hosts state=touch mode=644 owner={{ansible_user_id}} group={{ansible_user_id}}
+    when: app_repository_keyname is defined
+    become: yes
+    tags: app_stub
+
+  - name: APP STUB | Checkout app with key
+    git: repo="{{app_repository}}" dest="{{app_base_dir}}" accept_hostkey="yes" force="yes" key_file="{{ssh_dir}}/.ssh/{{app_repository_keyname}}" depth="1"
+    when: app_repository_keyname is defined
+    tags: app_stub
+
+
+  - name: APP STUB | Checkout app without key
+    git: repo="{{app_repository}}" dest="{{app_base_dir}}" accept_hostkey="yes" force="yes"
+    when: app_repository_keyname is not defined
+    tags: app_stub
+
+ - name: APP STUB | Install global rails gem
     shell: gem install --no-rdoc --no-ri rails
     become: yes
     tags: app_stub
@@ -49,12 +74,71 @@
     lineinfile: dest="{{app_base_dir}}/Gemfile" regexp="^(\s*)*ruby" line="ruby '{{ruby_version}}'"
     tags: app_stub
 
+  - name: APP STUB | gem therubyracer
+    lineinfile: dest="{{app_base_dir}}/Gemfile" regexp="^(\s*)*gem 'therubyracer'" line="gem 'therubyracer', :platforms => :ruby" insertafter="^group :production do"
+    tags: app_stub
+
+  - name: APP STUB | gem execjs
+    lineinfile: dest="{{app_base_dir}}/Gemfile" regexp="^(\s*)*gem 'execjs'" line="gem 'execjs'" insertafter="^group :production do"
+    tags: app_stub
+
   - name: APP STUB | Run bundle install --path .bundle/gems --binstubs .bundle/bin
-    shell: bundle install # --path .bundle/gems --binstubs .bundle/bin
+    shell: bundle install  --path .bundle/gems --binstubs .bundle/bin
     args:
       chdir: "{{app_base_dir}}"
     tags: app_stub
 
+  - name: APP STUB | Generate rake secret
+    shell: bundle exec rake secret
+    args:
+      chdir: "{{app_base_dir}}"
+    when: app_secret is not defined
+    register: rake_secret
+
+  - set_fact:
+      app_secret: "{{rake_secret.stdout}}"
+    when: app_secret is not defined
+    tags: app_stub
+
+  # - name: APP STUB | set .env
+  #   template: src="{{root_dir}}/components/app/dotenv.j2" dest="{{app_base_dir}}/.env"
+  #   tags: app_stub
+
+# Fix deprecation notice
+  - name: APP STUB | Migrate environments/production.rb
+    lineinfile: dest="{{app_base_dir}}/config/environments/{{app_env}}.rb" regexp="^(\s*)*config.serve_static_assets" line="  config.serve_static_files = true "
+    tags: app_stub
+
+  - name: APP STUB | Precompile assets
+    shell: bundle exec rake assets:precompile
+    args:
+      chdir: "{{app_base_dir}}"
+    environment:
+      RAILS_ENV: "{{app_env}}"
+      DATABASE_URL: "postgres://{{app_db_user}}:{{app_db_password}}@{{app_db_host}}/{{app_db_name}}"
+      SECRET_KEY_BASE: "{{app_secret}}"
+    tags: app_stub
+
+  - name: APP STUB | DB Migrate
+    shell: bundle exec rake db:migrate
+    args:
+      chdir: "{{app_base_dir}}"
+    environment:
+      RAILS_ENV: "{{app_env}}"
+      DATABASE_URL: "postgres://{{app_db_user}}:{{app_db_password}}@{{app_db_host}}/{{app_db_name}}"
+      SECRET_KEY_BASE: "{{app_secret}}"
+    tags: app_stub
+
+
+  - name: APP STUB | database.yml
+    template: src="{{root_dir}}/components/app/database.yml.j2" dest="{{app_base_dir}}/config/database.yml"
+    become: yes
+    tags: app_stub
+
+  - name: APP STUB | Nginx conf
+    template: src="{{root_dir}}/components/templates/nginx_app.conf.j2" dest="/etc/nginx/sites-enabled/{{app_short_name}}.conf"
+    become: yes
+    tags: app_stub
 
   - name: Nginx | Reload
     service: name=nginx state=reloaded
