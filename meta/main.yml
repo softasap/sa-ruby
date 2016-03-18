@@ -21,9 +21,16 @@ galaxy_info:
   # platform on this list, let us know and we'll get it added!
   #
   platforms:
-  - name: Ubuntu
-    versions:
-    - trusty
+    - name: Ubuntu
+      versions:
+        - trusty
+  galaxy_tags:
+    - ruby
+    - chruby
+    - ruby-install
+    - nginx
+    - phusionpassenger
+    - ubuntu
   #platforms:
   #- name: EL
   #  versions:
