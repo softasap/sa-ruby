@@ -13,7 +13,7 @@ Ubuntu 14.04 LTS
 
 Role Variables
 --------------
-
+<pre>
 rubies_location: /opt/rubies
 chruby_version: 0.3.9
 ruby_install_version: 0.6.0
@@ -33,7 +33,7 @@ app_www_root: "{{app_base_dir}}/public"
 app_directories:
   - "{{app_base_dir}}"
 
-
+</pre>
 
 
 Example Playbook
@@ -573,7 +573,7 @@ So, depending on network speed, you have your application installed.
 
 Let's check by ip address:
 
-![Deployed application](https://raw.githubusercontent.com/Voronenko/devops-ruby-app-demo/master/docs/app-deployed.png "Application deployed")
+![Deployed application](https://raw.githubusercontent.com/Voronenko/devops-ruby-app-demo/master/docs/app_deployed.png)
 
 ## Points of Interest
 
