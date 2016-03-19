@@ -1,5 +1,7 @@
 sa-ruby
 =========
+[![Build Status](https://travis-ci.org/softasap/sa-ruby.svg?branch=master)](https://travis-ci.org/softasap/sa-ruby)
+
 
 * chruby
 * ruby-install
