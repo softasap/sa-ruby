@@ -11,8 +11,8 @@ RUN pip install -U pip
 RUN pip install ansible==1.9.4
 RUN mkdir -p /etc/ansible
 
-COPY initctl_faker .
-RUN chmod +x initctl_faker && rm -fr /sbin/initctl && ln -s /initctl_faker /sbin/initctl
+#COPY initctl_faker .
+#RUN chmod +x initctl_faker && rm -fr /sbin/initctl && ln -s /initctl_faker /sbin/initctl
 
 # Install Ansible inventory file
 RUN echo "[local]\nlocalhost ansible_connection=local" > /etc/ansible/hosts
