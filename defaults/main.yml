@@ -17,6 +17,8 @@
   ruby_install_setsystem: true
   ruby_version: 2.3.0
 
+  ssh_dir: "/home/{{ansible_user_id}}"
+
   option_install_sampleapp: false
   option_install_nginx_passenger: true
   option_ruby_install_setsystem: true
