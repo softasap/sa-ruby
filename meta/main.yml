@@ -24,6 +24,8 @@ galaxy_info:
     - name: Ubuntu
       versions:
         - trusty
+        - wily
+        - xenial
   galaxy_tags:
     - ruby
     - chruby

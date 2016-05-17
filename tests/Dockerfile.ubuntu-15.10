@@ -1,5 +1,5 @@
 
-FROM ubuntu:14.04
+FROM ubuntu:15.10
 RUN apt-get update
 
 # Install Ansible
@@ -13,6 +13,7 @@ RUN mkdir -p /etc/ansible
 
 # setup tools 3.3 conflict
 RUN wget https://bootstrap.pypa.io/ez_setup.py -O - | python
+
 
 #COPY initctl_faker .
 #RUN chmod +x initctl_faker && rm -fr /sbin/initctl && ln -s /initctl_faker /sbin/initctl
