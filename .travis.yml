@@ -8,7 +8,7 @@ env:
     run_opts: ""
     playbook: test.yml
   - distribution: ubuntu
-    version: 15.10
+    version: "15.10"
     init: /sbin/init
     run_opts: ""
     playbook: test.yml
