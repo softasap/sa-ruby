@@ -1,7 +1,7 @@
 ---
 # defaults file for sa-ruby
 
-  role_dir: "{{ lookup('pipe','pwd')|dirname }}"
+  role_dir: "{{ role_path }}"
 
   needed_packages:
     - build-essential
