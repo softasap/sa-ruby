@@ -3,5 +3,6 @@
   roles:
     - {
         role: "role_under_test",
+        ruby_install_setsystem: false,
         docker_test: true
       }
