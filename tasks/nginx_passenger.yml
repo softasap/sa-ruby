@@ -22,7 +22,7 @@
     tags: passenger
 
   - name: Passenger | Add nginx extras repository
-    apt_repository: repo="deb https://oss-binaries.phusionpassenger.com/apt/passenger trusty main" state=present
+    apt_repository: repo="deb https://oss-binaries.phusionpassenger.com/apt/passenger {{ansible_distribution_release}} main" state=present
     when: ansible_os_family == "Debian" and nginx_present|failed
     tags: passenger
     become: yes
