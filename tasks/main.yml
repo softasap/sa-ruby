@@ -6,15 +6,29 @@
     apt: pkg={{ item }} state=present force="yes"  update_cache="yes"
     with_items: "{{needed_packages}}"
     become: yes
+    tags:
+      - travis_1
 
   - include: 'ch_ruby.yml'
+    tags:
+      - travis_2
+
 
   - include: 'ruby_install.yml'
+    tags:
+      - travis_2
+
 
   - include: 'ruby.yml'
+    tags:
+      - travis_3
+
 
   - include: 'nginx_passenger.yml'
     when: option_install_nginx_passenger
+    tags:
+      - travis_4
+
 
   - include: 'ruby_app_stub.yml'
     when: option_install_sampleapp
