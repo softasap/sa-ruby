@@ -13,9 +13,9 @@
 
   rubies_location: /opt/rubies
   chruby_version: 0.3.9
-  ruby_install_version: 0.6.0
+  ruby_install_version: 0.6.1
   ruby_install_setsystem: true
-  ruby_version: 2.3.0
+  ruby_version: 2.4.4
 
   ssh_dir: "/home/{{ansible_user_id}}"
 
