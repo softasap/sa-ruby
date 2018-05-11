@@ -91,7 +91,7 @@
 
   - name: Nginx | Reload
     service: name=nginx state=reloaded
-    when: ansible_os_family == "Debian" and (docker_test is not defined)  and nginx_present|failed
+    when: ansible_os_family == "Debian" and (docker_test is not defined)  and nginx_present is failed
     tags:
       - nginx
       - passenger

@@ -94,20 +94,20 @@ Upon studiing installation instructions, we automate manual installation steps w
   - name: Ruby | Download chruby distribution
     get_url: url="http://github.com/postmodern/chruby/archive/v{{ chruby_version }}.tar.gz"
              dest="/tmp/chruby-{{ chruby_version }}.tar.gz"
-    when: chruby_present|failed
+    when: chruby_present is failed
     tags: ruby
 
   - name: Ruby | unpack chruby
     command: tar xf "/tmp/chruby-{{ chruby_version }}.tar.gz"
              chdir="/tmp"
-    when: chruby_present|failed
+    when: chruby_present is failed
     tags: ruby
 
   - name: Ruby | chruby install target
     command: make install
              chdir="/tmp/chruby-{{ chruby_version }}"
     become: yes
-    when: chruby_present|failed
+    when: chruby_present is failed
     tags: ruby
 
   - name: Ruby | autoload script
@@ -212,7 +212,7 @@ Historically, I prefer Nginx over classic Apache, thus we will install pre-build
 
   - name: Passenger | Add GPG key to apt keyring
     apt_key: keyserver=keyserver.ubuntu.com id=561F9B9CAC40B2F7
-    when: ansible_os_family == "Debian" and nginx_present|failed
+    when: ansible_os_family == "Debian" and nginx_present is failed
     tags: passenger
     become: yes
 
@@ -221,19 +221,19 @@ Historically, I prefer Nginx over classic Apache, thus we will install pre-build
     with_items:
      - apt-transport-https
      - ca-certificates
-    when: ansible_os_family == "Debian" and nginx_present|failed
+    when: ansible_os_family == "Debian" and nginx_present is failed
     become: yes
     tags: passenger
 
   - name: Passenger | Add nginx extras repository
     apt_repository: repo="deb https://oss-binaries.phusionpassenger.com/apt/passenger trusty main" state=present
-    when: ansible_os_family == "Debian" and nginx_present|failed
+    when: ansible_os_family == "Debian" and nginx_present is failed
     tags: passenger
     become: yes
 
   - name: Ruby | Install Nginx extra and Phusion Passenger
     apt: state=present update_cache=yes pkg="{{item}}"
-    when: ansible_os_family == "Debian" and nginx_present|failed
+    when: ansible_os_family == "Debian" and nginx_present is failed
     with_items:
      - nginx-extras
      - passenger
@@ -245,7 +245,7 @@ Historically, I prefer Nginx over classic Apache, thus we will install pre-build
     with_items:
       - /etc/nginx/sites-available
       - /etc/nginx/sites-enabled
-    when: ansible_os_family == "Debian" and nginx_present|failed
+    when: ansible_os_family == "Debian" and nginx_present is failed
     tags:
       - nginx
       - passenger
@@ -256,7 +256,7 @@ Historically, I prefer Nginx over classic Apache, thus we will install pre-build
     tags:
       - nginx
       - passenger
-    when: ansible_os_family == "Debian" and nginx_present|failed
+    when: ansible_os_family == "Debian" and nginx_present is failed
     become: yes
 
   - name: Nginx | Disable default site
@@ -264,13 +264,13 @@ Historically, I prefer Nginx over classic Apache, thus we will install pre-build
     tags:
       - nginx
       - passenger
-    when: ansible_os_family == "Debian" and nginx_present|failed
+    when: ansible_os_family == "Debian" and nginx_present is failed
     become: yes
 
   - name: Nginx | Uncomment server_names_hash_bucket_size
     lineinfile: dest=/etc/nginx/nginx.conf regexp="^(\s*)#\s*server_names_hash_bucket_size" line="\1server_names_hash_bucket_size 64;" backrefs=yes
     become: yes
-    when: ansible_os_family == "Debian" and nginx_present|failed
+    when: ansible_os_family == "Debian" and nginx_present is failed
     tags:
       - nginx
       - passenger
@@ -278,7 +278,7 @@ Historically, I prefer Nginx over classic Apache, thus we will install pre-build
   - name: Nginx | Set ruby to system one
     lineinfile: dest=/etc/nginx/nginx.conf regexp="^(\s*)#\s*passenger_ruby" line="passenger_ruby /usr/local/bin/ruby;" backrefs=yes
     become: yes
-    when: ansible_os_family == "Debian" and nginx_present|failed
+    when: ansible_os_family == "Debian" and nginx_present is failed
     tags:
       - nginx
       - passenger
@@ -286,14 +286,14 @@ Historically, I prefer Nginx over classic Apache, thus we will install pre-build
   - name: Nginx | Set ruby to system one
     lineinfile: dest=/etc/nginx/nginx.conf regexp="^(\s*)#\s*passenger_root" line="passenger_root /usr/lib/ruby/vendor_ruby/phusion_passenger/locations.ini;" backrefs=yes
     become: yes
-    when: ansible_os_family == "Debian" and nginx_present|failed
+    when: ansible_os_family == "Debian" and nginx_present is failed
     tags:
       - nginx
       - passenger
 
   - name: Nginx | Reload
     service: name=nginx state=reloaded
-    when: ansible_os_family == "Debian" and nginx_present|failed
+    when: ansible_os_family == "Debian" and nginx_present is failed
     tags:
       - nginx
       - passenger
